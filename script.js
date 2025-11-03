@@ -1,143 +1,137 @@
-const wordInput = document.getElementById('word-input');
-const generateBtn = document.getElementById('generate-btn');
-const bingoBoard = document.getElementById('bingo-board');
+const DOM = {
+    wordInput: document.getElementById('word-input'),
+    generateBtn: document.getElementById('generate-btn'),
+    bingoBoard: document.getElementById('bingo-board'),
+};
+
+const STORAGE_KEYS = {
+    wordList: 'bingoWordList',
+    boardWords: 'bingoBoardWords',
+    markedCells: 'markedCells',
+};
+
 let bingoAchieved = false;
 const clearedLines = [];
 
-function generateBoard(words, markedCells) {
-    bingoAchieved = false;
-    clearedLines.length = 0;
-    
-    const boardWords = words;
+// --- DOM Manipulation ---
 
-    localStorage.setItem('bingoWords', JSON.stringify(boardWords));
+function createCell(word, isMarked) {
+    const cell = document.createElement('div');
+    cell.classList.add('bingo-cell');
+    cell.textContent = word;
+    if (isMarked) {
+        cell.classList.add('marked');
+    }
+    cell.addEventListener('click', onCellClick);
+    return cell;
+}
 
-    bingoBoard.innerHTML = '';
-
-    for (let i = 0; i < 25; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('bingo-cell');
+function renderBoard(boardWords, markedCells) {
+    DOM.bingoBoard.innerHTML = '';
+    for (let i = 0; i < boardWords.length; i++) {
         const word = boardWords[i];
-        cell.textContent = word;
-        if (word === 'Free Space') {
-            cell.classList.add('marked');
-        }
-        if (markedCells && markedCells[i]) {
-            cell.classList.add('marked');
-        }
-        cell.addEventListener('click', () => {
-            cell.classList.toggle('marked');
-            saveMarkedCells();
-            if (!bingoAchieved) {
-                const bingo = checkBingo();
-                if (bingo) {
-                    bingoAchieved = true;
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.6 }
-                    });
-                }
-            }
-        });
-        bingoBoard.appendChild(cell);
+        const isMarked = (word === 'Free Space') || (markedCells && markedCells[i]);
+        const cell = createCell(word, isMarked);
+        DOM.bingoBoard.appendChild(cell);
     }
 }
 
-function createNewBoard() {
-    const words = wordInput.value.split('\n').filter(word => word.trim() !== '');
+// --- Local Storage ---
+
+function getFromStorage(key) {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+}
+
+function saveToStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+// --- Game Logic ---
+
+function generateNewBoard() {
+    const words = DOM.wordInput.value.split('\n').filter(word => word.trim() !== '');
     if (words.length < 24) {
         alert('Please enter at least 24 words.');
         return;
     }
+
+    saveToStorage(STORAGE_KEYS.wordList, DOM.wordInput.value);
+
     const shuffledWords = words.sort(() => 0.5 - Math.random());
     const boardWords = shuffledWords.slice(0, 24);
     boardWords.splice(12, 0, 'Free Space');
-    generateBoard(boardWords);
-}
 
-generateBtn.addEventListener('click', createNewBoard);
+    bingoAchieved = false;
+    clearedLines.length = 0;
 
-function saveMarkedCells() {
-    const cells = Array.from(document.querySelectorAll('.bingo-cell'));
-    const markedCells = cells.map(cell => cell.classList.contains('marked'));
-    localStorage.setItem('markedCells', JSON.stringify(markedCells));
+    renderBoard(boardWords);
+    saveToStorage(STORAGE_KEYS.boardWords, boardWords);
+    saveToStorage(STORAGE_KEYS.markedCells, getMarkedCells());
 }
 
 function checkBingo() {
-    const cells = Array.from(document.querySelectorAll('.bingo-cell'));
-    const markedCells = cells.map(cell => cell.classList.contains('marked'));
+    const markedCells = getMarkedCells();
+    const lines = [
+        // Rows
+        [0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], [15, 16, 17, 18, 19], [20, 21, 22, 23, 24],
+        // Columns
+        [0, 5, 10, 15, 20], [1, 6, 11, 16, 21], [2, 7, 12, 17, 22], [3, 8, 13, 18, 23], [4, 9, 14, 19, 24],
+        // Diagonals
+        [0, 6, 12, 18, 24], [4, 8, 12, 16, 20],
+    ];
 
-    // Check rows
-    for (let i = 0; i < 5; i++) {
-        if (
-            markedCells[i * 5] &&
-            markedCells[i * 5 + 1] &&
-            markedCells[i * 5 + 2] &&
-            markedCells[i * 5 + 3] &&
-            markedCells[i * 5 + 4]
-        ) {
-            const line = `row${i}`;
-            if (!clearedLines.includes(line)) {
-                clearedLines.push(line);
+    for (const line of lines) {
+        const isBingo = line.every(index => markedCells[index]);
+        if (isBingo) {
+            const lineId = line.join('-');
+            if (!clearedLines.includes(lineId)) {
+                clearedLines.push(lineId);
                 return true;
             }
-        }
-    }
-
-    // Check columns
-    for (let i = 0; i < 5; i++) {
-        if (
-            markedCells[i] &&
-            markedCells[i + 5] &&
-            markedCells[i + 10] &&
-            markedCells[i + 15] &&
-            markedCells[i + 20]
-        ) {
-            const line = `col${i}`;
-            if (!clearedLines.includes(line)) {
-                clearedLines.push(line);
-                return true;
-            }
-        }
-    }
-
-    // Check diagonals
-    if (
-        markedCells[0] &&
-        markedCells[6] &&
-        markedCells[12] &&
-        markedCells[18] &&
-        markedCells[24]
-    ) {
-        const line = 'diag0';
-        if (!clearedLines.includes(line)) {
-            clearedLines.push(line);
-            return true;
-        }
-    }
-    if (
-        markedCells[4] &&
-        markedCells[8] &&
-        markedCells[12] &&
-        markedCells[16] &&
-        markedCells[20]
-    ) {
-        const line = 'diag1';
-        if (!clearedLines.includes(line)) {
-            clearedLines.push(line);
-            return true;
         }
     }
 
     return false;
 }
 
-window.addEventListener('load', () => {
-    const savedWords = localStorage.getItem('bingoWords');
-    const savedMarkedCells = localStorage.getItem('markedCells');
-    if (savedWords) {
-        wordInput.value = JSON.parse(savedWords).filter(word => word !== 'Free Space').join('\n');
-        generateBoard(JSON.parse(savedWords), savedMarkedCells ? JSON.parse(savedMarkedCells) : null);
+function getMarkedCells() {
+    const cells = Array.from(document.querySelectorAll('.bingo-cell'));
+    return cells.map(cell => cell.classList.contains('marked'));
+}
+
+// --- Event Handlers ---
+
+function onCellClick(event) {
+    event.target.classList.toggle('marked');
+    saveToStorage(STORAGE_KEYS.markedCells, getMarkedCells());
+
+    if (!bingoAchieved) {
+        if (checkBingo()) {
+            bingoAchieved = true;
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+            });
+        }
     }
-});
+}
+
+function onLoad() {
+    const savedWordList = getFromStorage(STORAGE_KEYS.wordList);
+    if (savedWordList) {
+        DOM.wordInput.value = savedWordList;
+    }
+
+    const savedBoardWords = getFromStorage(STORAGE_KEYS.boardWords);
+    if (savedBoardWords) {
+        const savedMarkedCells = getFromStorage(STORAGE_KEYS.markedCells);
+        renderBoard(savedBoardWords, savedMarkedCells);
+    }
+}
+
+// --- Initialization ---
+
+DOM.generateBtn.addEventListener('click', generateNewBoard);
+window.addEventListener('load', onLoad);
