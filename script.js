@@ -1,6 +1,7 @@
 const DOM = {
     wordInput: document.getElementById('word-input'),
     generateBtn: document.getElementById('generate-btn'),
+    shareBtn: document.getElementById('share-btn'),
     bingoBoard: document.getElementById('bingo-board'),
 };
 
@@ -100,6 +101,14 @@ function getMarkedCells() {
     return cells.map(cell => cell.classList.contains('marked'));
 }
 
+function generateShareableLink() {
+    const wordList = DOM.wordInput.value;
+    const encodedWordList = encodeURIComponent(wordList);
+    const url = new URL(window.location.href);
+    url.searchParams.set('wordlist', encodedWordList);
+    return url.toString();
+}
+
 // --- Event Handlers ---
 
 function onCellClick(event) {
@@ -119,6 +128,15 @@ function onCellClick(event) {
 }
 
 function onLoad() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const wordListFromUrl = urlParams.get('wordlist');
+
+    if (wordListFromUrl) {
+        DOM.wordInput.value = decodeURIComponent(wordListFromUrl);
+        generateNewBoard();
+        return;
+    }
+
     const savedWordList = getFromStorage(STORAGE_KEYS.wordList);
     if (savedWordList) {
         DOM.wordInput.value = savedWordList;
@@ -131,7 +149,19 @@ function onLoad() {
     }
 }
 
+function onShareClick() {
+    const link = generateShareableLink();
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Shareable link copied to clipboard!');
+        });
+    } else {
+        window.prompt('Copy this link:', link);
+    }
+}
+
 // --- Initialization ---
 
 DOM.generateBtn.addEventListener('click', generateNewBoard);
+DOM.shareBtn.addEventListener('click', onShareClick);
 window.addEventListener('load', onLoad);
