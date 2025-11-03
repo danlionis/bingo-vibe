@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bingo Board Generator</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px;
+      }
+      #word-input {
+        width: 300px;
+        height: 150px;
+        margin-bottom: 10px;
+      }
+      #generate-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      #bingo-board {
+        margin-top: 20px;
+        border-collapse: collapse;
+      }
+      #bingo-board td {
+        border: 1px solid black;
+        width: 80px;
+        height: 80px;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+      }
+      #bingo-board td.marked {
+        background-color: lightblue;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bingo Board Generator</h1>
+    <table id="bingo-board"></table>
+
+    <textarea
+      id="word-input"
+      placeholder="Enter your words, one per line"
+    ></textarea>
+    <button id="generate-btn">Generate Board</button>
+    <script src="script.js"></script>
+  </body>
+</html>
+
