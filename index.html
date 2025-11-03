@@ -17,13 +17,7 @@
         height: 150px;
         margin-bottom: 10px;
       }
-      #generate-btn {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      #share-btn {
-        margin-top: 10px;
+      .btn {
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
@@ -53,16 +47,31 @@
     <h1>Bingo Board Generator</h1>
     <div id="bingo-board"></div>
 
-    </br>
+    <br />
 
-    <textarea
-      id="word-input"
-      placeholder="Enter your words, one per line"
-    ></textarea>
-    <button id="generate-btn">Generate Board</button>
-    <button id="share-btn">Share</button>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <textarea
+        id="word-input"
+        placeholder="Enter your words, one per line"
+      ></textarea>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <button id="generate-btn" class="btn">Generate Board</button>
+        <button id="share-btn" class="btn">Share</button>
+        <button id="save-wordlist-btn" class="btn">Save Wordlist</button>
+      </div>
+    </div>
+
+    <h2>Saved Wordlists</h2>
+    <table id="saved-wordlists-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="saved-wordlists-tbody"></tbody>
+    </table>
     <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   </body>
 </html>
-

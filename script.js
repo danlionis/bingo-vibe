@@ -3,12 +3,15 @@ const DOM = {
   generateBtn: document.getElementById("generate-btn"),
   shareBtn: document.getElementById("share-btn"),
   bingoBoard: document.getElementById("bingo-board"),
+  saveWordlistBtn: document.getElementById("save-wordlist-btn"),
+  savedWordlistsTableBody: document.getElementById("saved-wordlists-tbody"),
 };
 
 const STORAGE_KEYS = {
   wordList: "bingoWordList",
   boardWords: "bingoBoardWords",
   markedCells: "markedCells",
+  savedWordlists: "bingoSavedWordlists",
 };
 
 let bingoAchieved = false;
@@ -158,6 +161,8 @@ function onLoad() {
     const savedMarkedCells = getFromStorage(STORAGE_KEYS.markedCells);
     renderBoard(savedBoardWords, savedMarkedCells);
   }
+
+  renderSavedWordlists();
 }
 
 function onShareClick() {
@@ -173,7 +178,50 @@ function onShareClick() {
 
 // --- Initialization ---
 
+function onSaveWordlistClick() {
+  const name = prompt("Enter a name for your wordlist:");
+  if (name) {
+    const wordlist = DOM.wordInput.value;
+    const savedWordlists = getFromStorage(STORAGE_KEYS.savedWordlists) || {};
+    savedWordlists[name] = wordlist;
+    saveToStorage(STORAGE_KEYS.savedWordlists, savedWordlists);
+    renderSavedWordlists();
+  }
+}
+
+function renderSavedWordlists() {
+  const savedWordlists = getFromStorage(STORAGE_KEYS.savedWordlists) || {};
+  DOM.savedWordlistsTableBody.innerHTML = "";
+  for (const name in savedWordlists) {
+    const row = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    nameCell.textContent = name;
+    row.appendChild(nameCell);
+
+    const actionCell = document.createElement("td");
+    const loadButton = document.createElement("button");
+    loadButton.textContent = "Load";
+    loadButton.addEventListener("click", () => {
+      DOM.wordInput.value = savedWordlists[name];
+    });
+    actionCell.appendChild(loadButton);
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => {
+      delete savedWordlists[name];
+      saveToStorage(STORAGE_KEYS.savedWordlists, savedWordlists);
+      renderSavedWordlists();
+    });
+    actionCell.appendChild(deleteButton);
+
+    row.appendChild(actionCell);
+    DOM.savedWordlistsTableBody.appendChild(row);
+  }
+}
+
 DOM.generateBtn.addEventListener("click", generateNewBoard);
 DOM.shareBtn.addEventListener("click", onShareClick);
+DOM.saveWordlistBtn.addEventListener("click", onSaveWordlistClick);
 window.addEventListener("load", onLoad);
 
