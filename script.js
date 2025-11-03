@@ -105,7 +105,7 @@ function generateShareableLink() {
     const wordList = DOM.wordInput.value;
     const encodedWordList = encodeURIComponent(wordList);
     const url = new URL(window.location.href);
-    url.searchParams.set('wordlist', encodedWordList);
+    url.hash = encodedWordList;
     return url.toString();
 }
 
@@ -128,8 +128,7 @@ function onCellClick(event) {
 }
 
 function onLoad() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const wordListFromUrl = urlParams.get('wordlist');
+    const wordListFromUrl = window.location.hash.substring(1);
 
     if (wordListFromUrl) {
         DOM.wordInput.value = decodeURIComponent(wordListFromUrl);
