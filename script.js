@@ -58,7 +58,7 @@ function generateNewBoard() {
     .split("\n")
     .filter((word) => word.trim() !== "");
   if (words.length < 24) {
-    alert("Please enter at least 24 words.");
+    alert("Please enter at least 24 words. Currently only " + words.length);
     return;
   }
 
